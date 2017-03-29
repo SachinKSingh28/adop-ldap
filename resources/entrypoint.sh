@@ -10,6 +10,8 @@ ulimit -n 8192
 
 set -e
 
+SLAPD_LOAD_LDIFS="${SLAPD_LOAD_LDIFS},structure.ldif"
+
 chown -R openldap:openldap /var/lib/ldap/ /var/run/slapd/
 
 SLAPD_FORCE_RECONFIGURE="${SLAPD_FORCE_RECONFIGURE:-false}"
@@ -47,7 +49,8 @@ EOF
     dpkg-reconfigure -f noninteractive slapd >/dev/null 2>&1
 
     dc_string=""
-
+   
+    OLD_IFS=$IFS
     IFS="."; declare -a dc_parts=($SLAPD_DOMAIN)
 
     for dc_part in "${dc_parts[@]}"; do
@@ -73,7 +76,8 @@ EOF
         IFS=","; declare -a schemas=($SLAPD_ADDITIONAL_SCHEMAS)
 
         for schema in "${schemas[@]}"; do
-            slapadd -n0 -F /etc/ldap/slapd.d -l "/etc/ldap/schema/${schema}.ldif" >/dev/null 2>&1
+            echo "Loading schema : $schema"
+            slapadd -n0 -F /etc/ldap/slapd.d -l "/etc/ldap/schema/${schema}.ldif"
         done
     fi
 
@@ -81,9 +85,17 @@ EOF
         IFS=","; declare -a modules=($SLAPD_ADDITIONAL_MODULES)
 
         for module in "${modules[@]}"; do
-             slapadd -n0 -F /etc/ldap/slapd.d -l "/etc/ldap/modules/${module}.ldif" >/dev/null 2>&1
+             echo "Loading module : $module"
+             module_file="/etc/ldap/modules/${module}.ldif"
+             if [ "$module" == 'ppolicy' ]; then
+                 SLAPD_PPOLICY_DN_PREFIX="${SLAPD_PPOLICY_DN_PREFIX:-cn=default,ou=policies}"
+                 SLAPD_LOAD_LDIFS="${SLAPD_LOAD_LDIFS},default-ppolicy.ldif"
+                 sed -i "s/\(olcPPolicyDefault: \)PPOLICY_DN/\1${SLAPD_PPOLICY_DN_PREFIX}$dc_string/g" $module_file
+             fi
+             slapadd -n0 -F /etc/ldap/slapd.d -l "$module_file"
         done
     fi
+    IFS=${OLD_IFS}
 
     chown -R openldap:openldap /etc/ldap/slapd.d/
 else
@@ -95,6 +107,6 @@ else
 fi
 
 # Run script to load configuration into ldap
-/usr/local/bin/ldap_init.sh
+/usr/local/bin/ldap_init.sh ${SLAPD_LOAD_LDIFS#","}
 
 exec "$@"

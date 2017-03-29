@@ -10,17 +10,21 @@ ENV INITIAL_ADMIN_PASSWORD="" GERRIT_PASSWORD="" JENKINS_PASSWORD=""
 ENV SLAPD_PASSWORD=""
 ENV SLAPD_DOMAIN ldap.example.com
 ENV SLAPD_FULL_DOMAIN "dc=ldap,dc=example,dc=com"
+ENV SLAPD_LDIF_BASE="/var/tmp/ldifs"
+ENV SLAPD_LOAD_LDIFS=""
 
 # End environment variable definition
 
 # Copy in configuration files
+COPY resources/modules/ppolicy.ldif /etc/ldap.dist/modules/ppolicy.ldif
+
 COPY resources/ldap_init.sh /usr/local/bin/
 RUN chmod u+x /usr/local/bin/ldap_init.sh
 
 COPY resources/load_ldif.sh /usr/local/bin/
 RUN chmod u+x /usr/local/bin/load_ldif.sh
 
-COPY resources/structure.ldif /tmp/
+COPY resources/ldifs /var/tmp/ldifs
 
 COPY resources/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod u+x /usr/local/bin/entrypoint.sh

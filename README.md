@@ -21,6 +21,8 @@ Runtime configuration can be provided using environment variables:
 * SLAPD_FULL_DOMAIN, the LDAP BASE_DN. Default to dc=ldap,dc=example,dc=com
 * INITIAL_ADMIN_USER, the initial LDAP user name with administrator rights
 * INITIAL_ADMIN_PASSWORD, the password for the initial administrator user
+* SLAPD_LDIF_BASE, the base directory where from ldifs can be loaded. Default to "/var/tmp/ldifs".
+* SLAPD_LOAD_LDIFS, comma separated list of ldifs you want to load from ldifs base. This will assume that ldifs are available in SLAPD_LDIF_BASE.
 
 # License
 Please view [licence information](LICENCE.md) for the software contained on this image.
