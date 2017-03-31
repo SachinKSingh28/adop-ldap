@@ -10,18 +10,32 @@ objectClass: pwdPolicy
 cn: default
 pwdAttribute: userPassword
 pwdCheckQuality: 0
-# 7 days
-#pwdExpireWarning: 604800
-pwdFailureCountInterval: 30
-pwdGraceAuthNLimit: 0
+pwdFailureCountInterval: 1800
+pwdGraceAuthNLimit: 5
 pwdInHistory: 5
 pwdLockout: TRUE
 # 30 minutes
 pwdLockoutDuration: 1800
 # 180 days
-pwdMaxAge: 15552000
+pwdMaxAge: 7776000
 pwdMaxFailure: 5
 pwdMinAge: 0
-pwdMinLength: 10
 pwdAllowUserChange: TRUE
+
+dn: cn=admin,ou=policies,${SLAPD_FULL_DOMAIN}
+objectClass: applicationProcess
+objectClass: pwdPolicy
+cn: default
+pwdAttribute: userPassword
+pwdCheckQuality: 0
+pwdFailureCountInterval: 1800
+pwdInHistory: 5
+pwdLockout: TRUE
+# 30 minutes
+pwdLockoutDuration: 1800
+# never
+pwdMaxAge: 0
+pwdMaxFailure: 5
+pwdMinAge: 0
+pwdAllowUserChange: FALSE
 
