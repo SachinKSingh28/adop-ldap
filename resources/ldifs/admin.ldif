@@ -1,0 +1,7 @@
+version: 1
+# Define password policy
+dn: cn=${INITIAL_ADMIN_USER},ou=people,${SLAPD_FULL_DOMAIN}
+changetype: modify
+add: pwdPolicySubentry
+pwdPolicySubentry: cn=admin,ou=policies,${SLAPD_FULL_DOMAIN}
+
