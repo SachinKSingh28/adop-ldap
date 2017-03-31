@@ -20,7 +20,7 @@ pwdLockoutDuration: 1800
 pwdMaxAge: 7776000
 pwdMaxFailure: 5
 pwdMinAge: 0
-pwdAllowUserChange: FALSE
+pwdAllowUserChange: TRUE
 
 dn: cn=service-users,ou=policies,${SLAPD_FULL_DOMAIN}
 objectClass: applicationProcess
@@ -37,5 +37,5 @@ pwdLockoutDuration: 1800
 pwdMaxAge: 0
 pwdMaxFailure: 5
 pwdMinAge: 0
-pwdAllowUserChange: FALSE
+pwdAllowUserChange: TRUE
 
