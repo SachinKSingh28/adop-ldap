@@ -90,7 +90,7 @@ EOF
              if [ "$module" == 'ppolicy' ]; then
                  SLAPD_PPOLICY_DN_PREFIX="${SLAPD_PPOLICY_DN_PREFIX:-cn=default,ou=policies}"
                  # Adds the structure, applies the default policy and modifies admin user policy
-                 SLAPD_LOAD_LDIFS="${SLAPD_LOAD_LDIFS},default-ppolicy.ldif,admin.ldif"
+                 SLAPD_LOAD_LDIFS="${SLAPD_LOAD_LDIFS},default-ppolicy.ldif,service-users.ldif"
                  sed -i "s/\(olcPPolicyDefault: \)PPOLICY_DN/\1${SLAPD_PPOLICY_DN_PREFIX}$dc_string/g" $module_file
              fi
              slapadd -n0 -F /etc/ldap/slapd.d -l "$module_file"
