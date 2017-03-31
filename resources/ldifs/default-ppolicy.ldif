@@ -16,7 +16,7 @@ pwdInHistory: 5
 pwdLockout: TRUE
 # 30 minutes
 pwdLockoutDuration: 1800
-# 180 days
+# 90 days
 pwdMaxAge: 7776000
 pwdMaxFailure: 5
 pwdMinAge: 0
