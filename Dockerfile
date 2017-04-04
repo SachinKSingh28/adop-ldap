@@ -58,10 +58,8 @@ RUN wget -O /root/cracklib-words-2.9.6.gz https://github.com/cracklib/cracklib/r
 RUN wget -O /root/openldap-ppolicy-check-password-1.1.tar.gz https://github.com/ltb-project/openldap-ppolicy-check-password/archive/v1.1.tar.gz && \
 	cd /root && gunzip openldap-ppolicy-check-password-1.1.tar.gz && tar -xvf openldap-ppolicy-check-password-1.1.tar && \
 	cd openldap-ppolicy-check-password-1.1 && \
-	make CONFIG="/etc/ldap/check_password.conf" LDAP_INC="-I/root/openldap-2.4.40/include/ -I/root/openldap-2.4.40/servers/slapd" \
-	CRACKLIB=/usr/share/dict/ CRACKLIB_LIB="/usr/lib/libcrack.so.2" && \
 	make install  CONFIG="/etc/ldap/check_password.conf" LDAP_INC="-I/root/openldap-2.4.40/include/ -I/root/openldap-2.4.40/servers/slapd" \
-	CRACKLIB=/usr/share/dict/ CRACKLIB_LIB="/usr/lib/libcrack.so.2" LIBDIR="/usr/lib/ldap/"
+	CRACKLIB="/lib/cracklib/" CRACKLIB_LIB="/usr/lib/libcrack.so.2" LIBDIR="/usr/lib/ldap/"
 
 # Override entry point
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
