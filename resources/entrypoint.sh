@@ -71,34 +71,6 @@ EOF
         rm -rf /etc/ldap/slapd.d/*
         slapadd -n0 -F /etc/ldap/slapd.d -l /tmp/config.ldif >/dev/null 2>&1
     fi
-
-    if [[ -n "$SLAPD_ADDITIONAL_SCHEMAS" ]]; then
-        IFS=","; declare -a schemas=($SLAPD_ADDITIONAL_SCHEMAS)
-
-        for schema in "${schemas[@]}"; do
-            echo "Loading schema : $schema"
-            slapadd -n0 -F /etc/ldap/slapd.d -l "/etc/ldap/schema/${schema}.ldif"
-        done
-    fi
-
-    if [[ -n "$SLAPD_ADDITIONAL_MODULES" ]]; then
-        IFS=","; declare -a modules=($SLAPD_ADDITIONAL_MODULES)
-
-        for module in "${modules[@]}"; do
-             echo "Loading module : $module"
-             module_file="/etc/ldap/modules/${module}.ldif"
-             if [ "$module" == 'ppolicy' ]; then
-                 SLAPD_PPOLICY_DN_PREFIX="${SLAPD_PPOLICY_DN_PREFIX:-cn=default,ou=policies}"
-                 # Adds the structure, applies the default policy and modifies admin user policy
-                 SLAPD_LOAD_LDIFS="${SLAPD_LOAD_LDIFS},default-ppolicy.ldif,service-users.ldif"
-                 sed -i "s/\(olcPPolicyDefault: \)PPOLICY_DN/\1${SLAPD_PPOLICY_DN_PREFIX}$dc_string/g" $module_file
-             fi
-             slapadd -n0 -F /etc/ldap/slapd.d -l "$module_file"
-        done
-    fi
-    IFS=${OLD_IFS}
-
-    chown -R openldap:openldap /etc/ldap/slapd.d/
 else
     slapd_configs_in_env=`env | grep 'SLAPD_'`
 
@@ -106,6 +78,59 @@ else
         echo "Info: Container already configured, therefore ignoring SLAPD_xxx environment variables"
     fi
 fi
+
+if [[ -n "$SLAPD_ADDITIONAL_SCHEMAS" ]]; then
+    # Copy schemas from source just in case
+    cp -n -a /etc/ldap.dist/schema/* /etc/ldap/schema/
+	IFS=","; declare -a schemas=($SLAPD_ADDITIONAL_SCHEMAS)
+
+	for schema in "${schemas[@]}"; do
+		echo "Loading schema : $schema"
+		slaptest
+		set +e
+		output=$(slapadd -n0 -F /etc/ldap/slapd.d -l "/etc/ldap/schema/${schema}.ldif" 2>&1)
+		ret=$?
+		set -e
+		if [[ $ret != 0 && $(echo ${output} | grep -c "Duplicate attributeType") == 0 ]]; then
+			echo "Error : unable to load schema. Message : ${output}"
+			exit 1
+		fi
+		echo "Loaded schema : $schema"
+	done
+fi
+
+if [[ -n "$SLAPD_ADDITIONAL_MODULES" ]]; then
+    # Copy modules from source just in case
+    cp -n -a /etc/ldap.dist/modules/* /etc/ldap/modules/
+	IFS=","; declare -a modules=($SLAPD_ADDITIONAL_MODULES)
+
+	for module in "${modules[@]}"; do
+		 echo "Loading module : $module"
+		 slaptest
+		 module_file="/etc/ldap/modules/${module}.ldif"
+		 if [ "$module" == 'ppolicy' ]; then
+            # Get the check_password configuration file if its missing.
+            cp -n -a /etc/ldap.dist/check_password.conf /etc/ldap/check_password.conf
+            # Set the default policy DN
+			SLAPD_PPOLICY_DN_PREFIX="${SLAPD_PPOLICY_DN_PREFIX:-cn=default,ou=policies}"
+			# Adds the structure, applies the default policy and modifies admin user policy
+			SLAPD_LOAD_LDIFS="${SLAPD_LOAD_LDIFS},default-ppolicy.ldif,service-users.ldif"
+			sed -i "s/\(olcPPolicyDefault: \)PPOLICY_DN/\1${SLAPD_PPOLICY_DN_PREFIX}$dc_string/g" $module_file
+		 fi
+		 set +e
+		 output=$(slapadd -n0 -F /etc/ldap/slapd.d -l "$module_file" 2>&1)
+		 ret=$?
+		 set -e
+		 if [[ $ret != 0 && $(echo ${output} | grep -c "already loaded") == 0 ]]; then
+			echo "Error : unable to load module. Message : ${output}"
+			exit 1
+		 fi
+		 echo "Loaded module : $module"
+	done
+fi
+IFS=${OLD_IFS}
+
+chown -R openldap:openldap /etc/ldap/slapd.d/
 
 # Run script to load configuration into ldap
 /usr/local/bin/ldap_init.sh ${SLAPD_LOAD_LDIFS#","}

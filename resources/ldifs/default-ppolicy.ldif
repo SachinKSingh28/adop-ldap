@@ -13,6 +13,7 @@ pwdAttribute: userPassword
 pwdCheckQuality: 2
 pwdCheckModule: check_password.so
 pwdFailureCountInterval: 1800
+pwdExpireWarning: 259200
 pwdGraceAuthNLimit: 5
 pwdInHistory: 5
 pwdLockout: TRUE
@@ -28,7 +29,7 @@ dn: cn=service-users,ou=policies,${SLAPD_FULL_DOMAIN}
 objectClass: applicationProcess
 objectClass: pwdPolicy
 objectClass: pwdPolicyChecker
-cn: default
+cn: service-users
 pwdAttribute: userPassword
 pwdCheckQuality: 2
 pwdCheckModule: check_password.so
